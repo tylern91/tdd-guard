@@ -75,8 +75,8 @@ public final class TddGuardListener implements TestExecutionListener {
                 break;
             case FAILED:
             case ABORTED:
-                // Why: ABORTED means an individual test was aborted (e.g. Assumptions.assumeTrue(false)),
-                // not the whole run.
+                // ABORTED = individual test aborted (e.g. Assumptions.assumeTrue(false)), not run interruption.
+                // It is counted in expectedCount and recorded here so recordedCount stays consistent.
                 collector.recordFailed(moduleId, methodName, result.getThrowable().orElse(null));
                 break;
             default:

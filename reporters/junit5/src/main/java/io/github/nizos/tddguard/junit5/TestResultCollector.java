@@ -21,8 +21,8 @@ public final class TestResultCollector {
     private int expectedCount = 0;
     private int recordedCount = 0;
 
-    public void setExpectedCount(int n) {
-        this.expectedCount = n;
+    public void setExpectedCount(int count) {
+        this.expectedCount = count;
     }
 
     public void recordPassed(String moduleId, String methodName) {
@@ -58,6 +58,8 @@ public final class TestResultCollector {
         } else if (expectedCount > 0 && recordedCount < expectedCount) {
             reason = "interrupted";
         } else {
+            // An empty suite (expectedCount not set) emits "passed", not "interrupted".
+            // This intentionally diverges from rspec, which treats empty runs as interrupted.
             reason = "passed";
         }
 
