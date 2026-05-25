@@ -1,6 +1,7 @@
 package io.github.nizos.tddguard.junit5;
 
 import io.github.nizos.tddguard.junit5.model.TestCase;
+import io.github.nizos.tddguard.junit5.model.TestError;
 import io.github.nizos.tddguard.junit5.model.TestModule;
 import io.github.nizos.tddguard.junit5.model.TestResult;
 import io.github.nizos.tddguard.junit5.model.UnhandledError;
