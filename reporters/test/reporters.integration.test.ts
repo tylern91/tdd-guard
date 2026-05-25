@@ -34,6 +34,7 @@ interface ReporterTestData {
   passingResults: unknown
   failingResults: unknown
   importErrorResults: unknown
+  interruptedResults?: unknown
 }
 
 type ReporterName =
@@ -733,6 +734,36 @@ describe('Reporters', () => {
         }
       )
     })
+
+    describe('when run is interrupted', () => {
+      const reporters: Array<{
+        name: ReporterName
+        expected: string | undefined
+      }> = [
+        { name: 'jest', expected: undefined },
+        { name: 'vitest', expected: undefined },
+        { name: 'phpunit', expected: undefined },
+        { name: 'pytest', expected: undefined },
+        { name: 'go', expected: undefined },
+        { name: 'rust', expected: undefined },
+        { name: 'storybook', expected: undefined },
+        { name: 'rspec', expected: 'interrupted' },
+        { name: 'minitest', expected: 'interrupted' },
+        { name: 'junit5', expected: 'interrupted' },
+      ]
+
+      it.each(reporters)(
+        '$name reports overall status as interrupted',
+        ({ name, expected }) => {
+          const reasons = extractValues('interruptedResults', extract.reason)
+          if (expected === undefined) {
+            expect(reasons[name]).toBeUndefined()
+          } else {
+            expect(reasons[name]).toBe(expected)
+          }
+        }
+      )
+    })
   })
 
   // Rust-specific enhancements tests
@@ -764,7 +795,11 @@ describe('Reporters', () => {
 
   // Helper to extract values from all reporters
   function extractValues<T>(
-    scenario: 'passingResults' | 'failingResults' | 'importErrorResults',
+    scenario:
+      | 'passingResults'
+      | 'failingResults'
+      | 'importErrorResults'
+      | 'interruptedResults',
     extractor: (data: unknown) => T
   ): Record<ReporterName, T | undefined> {
     const jest = reporterData.find((r) => r.name === 'JestReporter')
@@ -826,18 +861,28 @@ describe('Reporters', () => {
 async function runAllScenarios(
   reporter: ReporterConfig
 ): Promise<ReporterTestData> {
-  const [passingResults, failingResults, importErrorResults] =
-    await Promise.all([
-      runReporter(reporter, 'singlePassing'),
-      runReporter(reporter, 'singleFailing'),
-      runReporter(reporter, 'singleImportError'),
-    ])
+  const interruptedPromise = reporter.testScenarios.singleInterrupted
+    ? runReporter(reporter, 'singleInterrupted')
+    : Promise.resolve(undefined)
+
+  const [
+    passingResults,
+    failingResults,
+    importErrorResults,
+    interruptedResults,
+  ] = await Promise.all([
+    runReporter(reporter, 'singlePassing'),
+    runReporter(reporter, 'singleFailing'),
+    runReporter(reporter, 'singleImportError'),
+    interruptedPromise,
+  ])
 
   return {
     name: reporter.name,
     passingResults,
     failingResults,
     importErrorResults,
+    interruptedResults,
   }
 }
 

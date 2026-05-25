@@ -16,6 +16,7 @@ export function createRspecReporter(): ReporterConfig {
     singlePassing: 'single_passing_spec.rb',
     singleFailing: 'single_failing_spec.rb',
     singleImportError: 'single_import_error_spec.rb',
+    singleInterrupted: 'single_interrupted_spec.rb',
   }
 
   return {

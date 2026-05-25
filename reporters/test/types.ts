@@ -2,6 +2,7 @@ export interface TestScenarios {
   singlePassing: string
   singleFailing: string
   singleImportError: string
+  singleInterrupted?: string
 }
 
 export interface ReporterConfig {

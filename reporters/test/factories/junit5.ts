@@ -10,6 +10,7 @@ export function createJunit5Reporter(): ReporterConfig {
     singlePassing: 'passing',
     singleFailing: 'failing',
     singleImportError: 'import',
+    singleInterrupted: 'interrupted',
   }
 
   const reporterDir = join(__dirname, '../../junit5')
@@ -37,14 +38,11 @@ export function createJunit5Reporter(): ReporterConfig {
       // Resolve symlinks so the ProjectRootResolver cwd check passes on macOS
       const realTempDir = realpathSync(tempDir)
 
+      const task = scenario === 'singleInterrupted' ? 'runInterrupted' : 'test'
+
       spawnSync(
         join(tempDir, 'gradlew'),
-        [
-          'test',
-          '--no-daemon',
-          '--rerun-tasks',
-          `-PreporterJar=${reporterJar}`,
-        ],
+        [task, '--no-daemon', '--rerun-tasks', `-PreporterJar=${reporterJar}`],
         {
           cwd: realTempDir,
           env: { ...process.env, TDD_GUARD_PROJECT_ROOT: realTempDir },

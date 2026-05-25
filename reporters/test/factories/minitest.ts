@@ -16,6 +16,7 @@ export function createMinitestReporter(): ReporterConfig {
     singlePassing: 'single_passing_test.rb',
     singleFailing: 'single_failing_test.rb',
     singleImportError: 'single_import_error_test.rb',
+    singleInterrupted: 'single_interrupted_test.rb',
   }
 
   return {
@@ -41,16 +42,16 @@ export function createMinitestReporter(): ReporterConfig {
       const reporterLibPath = join(reporterDir, 'lib')
       const testFile = testScenarios[scenario]
 
+      // The interrupted fixture manually drives the reporter without autorun
+      // to avoid Minitest's at_exit overwriting the test.json we produce.
+      const requireFlag =
+        scenario === 'singleInterrupted'
+          ? '-rtdd_guard_minitest/reporter'
+          : '-rtdd_guard_minitest/autorun'
+
       spawnSync(
         bundleBinary,
-        [
-          'exec',
-          'ruby',
-          '-I',
-          reporterLibPath,
-          '-rtdd_guard_minitest/autorun',
-          testFile,
-        ],
+        ['exec', 'ruby', '-I', reporterLibPath, requireFlag, testFile],
         {
           cwd: tempDir,
           env: {
