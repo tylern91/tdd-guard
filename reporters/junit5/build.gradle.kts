@@ -40,7 +40,9 @@ dependencies {
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags("fixture")
+    }
 }
 
 publishing {
