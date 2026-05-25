@@ -4,11 +4,15 @@ import { join } from 'node:path'
 import type { ReporterConfig, TestScenarios } from '../types'
 import { copyTestArtifacts } from './helpers'
 
-// Use hardcoded absolute path for security when available, fall back to PATH for CI environments
+// Use hardcoded absolute path for security when available, fall back to PATH for CI environments.
+// rbenv shim is checked first so local rbenv-managed Ruby takes precedence over system Ruby 2.6.
 const bundleBinary =
-  ['/usr/local/bin/bundle', '/usr/bin/bundle', '/opt/homebrew/bin/bundle'].find(
-    existsSync
-  ) ?? 'bundle'
+  [
+    `${process.env.HOME}/.rbenv/shims/bundle`,
+    '/usr/local/bin/bundle',
+    '/usr/bin/bundle',
+    '/opt/homebrew/bin/bundle',
+  ].find(existsSync) ?? 'bundle'
 
 export function createRspecReporter(): ReporterConfig {
   const artifactDir = 'rspec'
