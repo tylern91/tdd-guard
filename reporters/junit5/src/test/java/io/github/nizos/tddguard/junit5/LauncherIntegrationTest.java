@@ -1,6 +1,8 @@
 package io.github.nizos.tddguard.junit5;
 
-import org.junit.jupiter.api.Tag;
+import io.github.nizos.tddguard.junit5.fixtures.FailingFixture;
+import io.github.nizos.tddguard.junit5.fixtures.MixedFixture;
+import io.github.nizos.tddguard.junit5.fixtures.PassingFixture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
@@ -83,37 +85,6 @@ class LauncherIntegrationTest {
         String expectedModuleId = PassingFixture.class.getName();
         assertTrue(content.contains("\"moduleId\": \"" + expectedModuleId + "\""));
     }
-
-    // Inner fixture classes — tagged to exclude from direct Gradle test execution
-
-    @Tag("fixture")
-    static class PassingFixture {
-        @Test
-        void passes() {
-        }
-    }
-
-    @Tag("fixture")
-    static class FailingFixture {
-        @Test
-        void fails() {
-            assertEquals(1, 2);
-        }
-    }
-
-    @Tag("fixture")
-    static class MixedFixture {
-        @Test
-        void passes() {
-        }
-
-        @Test
-        void fails() {
-            assertEquals(1, 2);
-        }
-    }
-
-    // Helper
 
     private static TddGuardListener createListener(Path projectRoot) {
         ProjectRootResolver resolver = new ProjectRootResolver(

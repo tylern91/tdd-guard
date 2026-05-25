@@ -64,23 +64,30 @@ public final class TddGuardListener implements TestExecutionListener {
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult result) {
-        if (collector == null || !testIdentifier.isTest()) return;
+        if (collector == null) return;
 
-        String moduleId = moduleId(testIdentifier);
-        String methodName = methodName(testIdentifier);
+        if (testIdentifier.isTest()) {
+            String moduleId = moduleId(testIdentifier);
+            String methodName = methodName(testIdentifier);
 
-        switch (result.getStatus()) {
-            case SUCCESSFUL:
-                collector.recordPassed(moduleId, methodName);
-                break;
-            case FAILED:
-            case ABORTED:
-                // ABORTED = individual test aborted (e.g. Assumptions.assumeTrue(false)), not run interruption.
-                // It is counted in expectedCount and recorded here so recordedCount stays consistent.
-                collector.recordFailed(moduleId, methodName, result.getThrowable().orElse(null));
-                break;
-            default:
-                break;
+            switch (result.getStatus()) {
+                case SUCCESSFUL:
+                    collector.recordPassed(moduleId, methodName);
+                    break;
+                case FAILED:
+                case ABORTED:
+                    // ABORTED = individual test aborted (e.g. Assumptions.assumeTrue(false)), not run interruption.
+                    // It is counted in expectedCount and recorded here so recordedCount stays consistent.
+                    collector.recordFailed(moduleId, methodName, result.getThrowable().orElse(null));
+                    break;
+                default:
+                    break;
+            }
+            return;
+        }
+
+        if (result.getStatus() == TestExecutionResult.Status.FAILED) {
+            result.getThrowable().ifPresent(collector::recordUnhandledError);
         }
     }
 

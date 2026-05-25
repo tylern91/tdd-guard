@@ -3,6 +3,7 @@ package io.github.nizos.tddguard.junit5;
 import io.github.nizos.tddguard.junit5.model.TestCase;
 import io.github.nizos.tddguard.junit5.model.TestModule;
 import io.github.nizos.tddguard.junit5.model.TestResult;
+import io.github.nizos.tddguard.junit5.model.UnhandledError;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -169,8 +170,103 @@ class TestResultCollectorTest {
     @Test
     void reasonIsPassedWhenExpectedCountIsZero() {
         collector.setExpectedCount(0);
-        // expectedCount=0 means "no information" — don't emit interrupted
+        // expectedCount=0 means "no information" — do not emit interrupted
 
         assertEquals("passed", collector.build().reason());
+    }
+
+    @Test
+    void populatesStackFromFirstUserFrame() {
+        Throwable t = new RuntimeException("boom");
+        t.setStackTrace(new StackTraceElement[] {
+                new StackTraceElement("org.opentest4j.AssertionFailedError", "<init>", "AssertionFailedError.java", 33),
+                new StackTraceElement("org.junit.jupiter.api.AssertionUtils", "fail", "AssertionUtils.java", 39),
+                new StackTraceElement("com.example.MyTest", "shouldFail", "MyTest.java", 12)
+        });
+
+        collector.recordFailed("com.example.MyTest", "shouldFail", t);
+
+        TestCase test = collector.build().testModules().get(0).tests().get(0);
+        assertEquals("com.example.MyTest.shouldFail(MyTest.java:12)", test.errors().get(0).stack());
+    }
+
+    @Test
+    void leavesStackNullWhenAllFramesAreFrameworkInternal() {
+        Throwable t = new RuntimeException("boom");
+        t.setStackTrace(new StackTraceElement[] {
+                new StackTraceElement("org.junit.jupiter.api.AssertionUtils", "fail", "AssertionUtils.java", 39),
+                new StackTraceElement("jdk.internal.reflect.DirectMethodHandleAccessor", "invoke", "DirectMethodHandleAccessor.java", 103)
+        });
+
+        collector.recordFailed("com.example.MyTest", "shouldFail", t);
+
+        TestCase test = collector.build().testModules().get(0).tests().get(0);
+        assertNull(test.errors().get(0).stack());
+    }
+
+    @Test
+    void leavesStackNullWhenThrowableIsNull() {
+        collector.recordFailed("com.example.MyTest", "shouldFail", null);
+
+        TestCase test = collector.build().testModules().get(0).tests().get(0);
+        assertNull(test.errors().get(0).stack());
+    }
+
+    @Test
+    void buildHasEmptyUnhandledErrorsByDefault() {
+        assertTrue(collector.build().unhandledErrors().isEmpty());
+    }
+
+    @Test
+    void recordUnhandledErrorCapturesClassMessageAndStack() {
+        Throwable t = new RuntimeException("teardown blew up");
+        t.setStackTrace(new StackTraceElement[] {
+                new StackTraceElement("org.junit.jupiter.engine.execution.ExecutableInvoker", "invoke", "ExecutableInvoker.java", 115),
+                new StackTraceElement("com.example.MyTest", "tearDownAll", "MyTest.java", 31)
+        });
+
+        collector.recordUnhandledError(t);
+
+        List<UnhandledError> errors = collector.build().unhandledErrors();
+        assertEquals(1, errors.size());
+        UnhandledError error = errors.get(0);
+        assertEquals("java.lang.RuntimeException", error.name());
+        assertEquals("teardown blew up", error.message());
+        assertEquals("com.example.MyTest.tearDownAll(MyTest.java:31)", error.stack());
+    }
+
+    @Test
+    void recordUnhandledErrorFallsBackToClassNameWhenMessageIsNull() {
+        collector.recordUnhandledError(new NullPointerException());
+
+        UnhandledError error = collector.build().unhandledErrors().get(0);
+        assertEquals("java.lang.NullPointerException", error.name());
+        assertEquals("java.lang.NullPointerException", error.message());
+    }
+
+    @Test
+    void recordUnhandledErrorIgnoresNullThrowable() {
+        collector.recordUnhandledError(null);
+
+        assertTrue(collector.build().unhandledErrors().isEmpty());
+    }
+
+    @Test
+    void recordUnhandledErrorAppendsInOrder() {
+        collector.recordUnhandledError(new RuntimeException("first"));
+        collector.recordUnhandledError(new IllegalStateException("second"));
+
+        List<UnhandledError> errors = collector.build().unhandledErrors();
+        assertEquals(2, errors.size());
+        assertEquals("first", errors.get(0).message());
+        assertEquals("second", errors.get(1).message());
+    }
+
+    @Test
+    void reasonIsFailedWhenOnlyUnhandledErrorsPresent() {
+        collector.recordPassed("com.example.MyTest", "a");
+        collector.recordUnhandledError(new RuntimeException("hook failure"));
+
+        assertEquals("failed", collector.build().reason());
     }
 }

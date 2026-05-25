@@ -40,9 +40,12 @@ dependencies {
 }
 
 tasks.test {
-    useJUnitPlatform {
-        excludeTags("fixture")
-    }
+    useJUnitPlatform()
+    // Fixture classes under the `fixtures` package are driven directly by
+    // the JUnit Platform Launcher API from integration tests. Excluding
+    // them from the regular test discovery prevents their deliberately
+    // failing hooks from breaking the outer build.
+    exclude("**/fixtures/**")
 }
 
 publishing {
