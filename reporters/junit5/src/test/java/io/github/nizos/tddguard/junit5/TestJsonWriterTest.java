@@ -1,7 +1,6 @@
 package io.github.nizos.tddguard.junit5;
 
 import io.github.nizos.tddguard.junit5.model.TestCase;
-import io.github.nizos.tddguard.junit5.model.TestError;
 import io.github.nizos.tddguard.junit5.model.TestModule;
 import io.github.nizos.tddguard.junit5.model.TestResult;
 import org.junit.jupiter.api.Test;
@@ -10,10 +9,12 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static io.github.nizos.tddguard.junit5.factories.TestData.moduleWith;
+import static io.github.nizos.tddguard.junit5.factories.TestData.passedTest;
+import static io.github.nizos.tddguard.junit5.factories.TestData.failedTest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,10 +50,8 @@ class TestJsonWriterTest {
     @Test
     void serializesFailedTestWithError() {
         TestResult result = new TestResult(List.of(
-                new TestModule("com.example.MyTest", List.of(
-                        TestCase.failed("shouldFail", "com.example.MyTest::shouldFail",
-                                List.of(new TestError("expected true but was false")))
-                ))
+                moduleWith("com.example.MyTest",
+                        failedTest("shouldFail", "expected true but was false"))
         ));
 
         String json = writer.serialize(result);
@@ -65,9 +64,8 @@ class TestJsonWriterTest {
     @Test
     void serializesSkippedTest() {
         TestResult result = new TestResult(List.of(
-                new TestModule("com.example.MyTest", List.of(
-                        TestCase.skipped("shouldSkip", "com.example.MyTest::shouldSkip")
-                ))
+                moduleWith("com.example.MyTest",
+                        TestCase.skipped("shouldSkip", "com.example.MyTest::shouldSkip"))
         ));
 
         String json = writer.serialize(result);
@@ -78,10 +76,9 @@ class TestJsonWriterTest {
     @Test
     void omitsErrorsFieldForPassedAndSkippedTests() {
         TestResult result = new TestResult(List.of(
-                new TestModule("com.example.MyTest", Arrays.asList(
-                        TestCase.passed("a", "com.example.MyTest::a"),
-                        TestCase.skipped("b", "com.example.MyTest::b")
-                ))
+                moduleWith("com.example.MyTest",
+                        passedTest("a"),
+                        TestCase.skipped("b", "com.example.MyTest::b"))
         ));
 
         String json = writer.serialize(result);
@@ -92,13 +89,8 @@ class TestJsonWriterTest {
     @Test
     void groupsMultipleTestsByModule() {
         TestResult result = new TestResult(List.of(
-                new TestModule("com.example.FirstTest", List.of(
-                        TestCase.passed("a", "com.example.FirstTest::a"),
-                        TestCase.passed("b", "com.example.FirstTest::b")
-                )),
-                new TestModule("com.example.SecondTest", List.of(
-                        TestCase.passed("c", "com.example.SecondTest::c")
-                ))
+                moduleWith("com.example.FirstTest", passedTest("a"), passedTest("b")),
+                moduleWith("com.example.SecondTest", passedTest("c"))
         ));
 
         String json = writer.serialize(result);
@@ -110,10 +102,8 @@ class TestJsonWriterTest {
     @Test
     void escapesQuotesInStrings() {
         TestResult result = new TestResult(List.of(
-                new TestModule("com.example.MyTest", List.of(
-                        TestCase.failed("test", "com.example.MyTest::test",
-                                List.of(new TestError("expected \"foo\" but got \"bar\"")))
-                ))
+                moduleWith("com.example.MyTest",
+                        failedTest("test", "expected \"foo\" but got \"bar\""))
         ));
 
         String json = writer.serialize(result);
@@ -125,10 +115,8 @@ class TestJsonWriterTest {
     @Test
     void escapesNewlinesAndTabs() {
         TestResult result = new TestResult(List.of(
-                new TestModule("com.example.MyTest", List.of(
-                        TestCase.failed("test", "com.example.MyTest::test",
-                                List.of(new TestError("line1\nline2\ttabbed")))
-                ))
+                moduleWith("com.example.MyTest",
+                        failedTest("test", "line1\nline2\ttabbed"))
         ));
 
         String json = writer.serialize(result);
@@ -139,10 +127,8 @@ class TestJsonWriterTest {
     @Test
     void escapesBackslashes() {
         TestResult result = new TestResult(List.of(
-                new TestModule("com.example.MyTest", List.of(
-                        TestCase.failed("test", "com.example.MyTest::test",
-                                List.of(new TestError("path\\to\\file")))
-                ))
+                moduleWith("com.example.MyTest",
+                        failedTest("test", "path\\to\\file"))
         ));
 
         String json = writer.serialize(result);
@@ -153,9 +139,7 @@ class TestJsonWriterTest {
     @Test
     void writesFileAtomically(@TempDir Path tmp) throws IOException {
         TestResult result = new TestResult(List.of(
-                new TestModule("com.example.MyTest", List.of(
-                        TestCase.passed("a", "com.example.MyTest::a")
-                ))
+                moduleWith("com.example.MyTest", passedTest("a"))
         ));
 
         writer.write(tmp, result);
