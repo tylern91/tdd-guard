@@ -53,6 +53,9 @@ public final class TddGuardListener implements TestExecutionListener {
             Path projectRoot = resolver.resolve(null);
             outputDir = projectRoot.resolve(DATA_SUBPATH);
             collector = new TestResultCollector();
+            if (testPlan != null) {
+                collector.setExpectedCount((int) testPlan.countTestIdentifiers(TestIdentifier::isTest));
+            }
         } catch (IllegalStateException e) {
             System.err.println("[tdd-guard-junit5] disabled: " + e.getMessage());
             collector = null;
@@ -72,6 +75,8 @@ public final class TddGuardListener implements TestExecutionListener {
                 break;
             case FAILED:
             case ABORTED:
+                // Why: ABORTED means an individual test was aborted (e.g. Assumptions.assumeTrue(false)),
+                // not the whole run.
                 collector.recordFailed(moduleId, methodName, result.getThrowable().orElse(null));
                 break;
             default:

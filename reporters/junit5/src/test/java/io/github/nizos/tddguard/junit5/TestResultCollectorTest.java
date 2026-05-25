@@ -137,4 +137,40 @@ class TestResultCollectorTest {
     void reasonIsPassedWhenNoTestsRecorded() {
         assertEquals("passed", collector.build().reason());
     }
+
+    @Test
+    void reasonIsInterruptedWhenFewerTestsRecordedThanExpected() {
+        collector.setExpectedCount(3);
+        collector.recordPassed("com.example.MyTest", "a");
+        collector.recordPassed("com.example.MyTest", "b");
+        // only 2 recorded, expected 3
+
+        assertEquals("interrupted", collector.build().reason());
+    }
+
+    @Test
+    void reasonIsFailedTakesPriorityOverInterrupted() {
+        collector.setExpectedCount(3);
+        collector.recordFailed("com.example.MyTest", "a", new RuntimeException("boom"));
+        // 1 recorded, expected 3 — but failed takes priority
+
+        assertEquals("failed", collector.build().reason());
+    }
+
+    @Test
+    void reasonIsPassedWhenExpectedCountMatchesRecorded() {
+        collector.setExpectedCount(2);
+        collector.recordPassed("com.example.MyTest", "a");
+        collector.recordPassed("com.example.MyTest", "b");
+
+        assertEquals("passed", collector.build().reason());
+    }
+
+    @Test
+    void reasonIsPassedWhenExpectedCountIsZero() {
+        collector.setExpectedCount(0);
+        // expectedCount=0 means "no information" — don't emit interrupted
+
+        assertEquals("passed", collector.build().reason());
+    }
 }

@@ -18,6 +18,12 @@ import java.util.Map;
  */
 public final class TestResultCollector {
     private final Map<String, List<TestCase>> moduleMap = new LinkedHashMap<>();
+    private int expectedCount = 0;
+    private int recordedCount = 0;
+
+    public void setExpectedCount(int n) {
+        this.expectedCount = n;
+    }
 
     public void recordPassed(String moduleId, String methodName) {
         add(moduleId, TestCase.passed(methodName, fullName(moduleId, methodName)));
@@ -46,11 +52,21 @@ public final class TestResultCollector {
             }
         }
 
-        return new TestResult(modules, anyFailed ? "failed" : "passed");
+        String reason;
+        if (anyFailed) {
+            reason = "failed";
+        } else if (expectedCount > 0 && recordedCount < expectedCount) {
+            reason = "interrupted";
+        } else {
+            reason = "passed";
+        }
+
+        return new TestResult(modules, reason);
     }
 
     private void add(String moduleId, TestCase testCase) {
         moduleMap.computeIfAbsent(moduleId, key -> new ArrayList<>()).add(testCase);
+        recordedCount++;
     }
 
     private static String fullName(String moduleId, String methodName) {

@@ -8,6 +8,8 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.AbstractTestDescriptor;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +17,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 class TddGuardListenerTest {
 
@@ -110,6 +113,37 @@ class TddGuardListenerTest {
         listener.testPlanExecutionFinished(null);
 
         assertFalse(Files.exists(tmp.resolve(DATA_PATH)));
+    }
+
+    @Test
+    void capturesExpectedCountFromTestPlanExecutionStarted(@TempDir Path tmp) throws IOException {
+        TddGuardListener listener = createListener(tmp, name -> tmp.toString());
+
+        // Create a real TestPlan with exactly 2 tests using our synthetic inner class
+        var request = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectClass(TwoTestsFixture.class))
+                .build();
+        var launcher = LauncherFactory.create();
+        var testPlan = launcher.discover(request);
+
+        // testPlanExecutionStarted captures count=2
+        listener.testPlanExecutionStarted(testPlan);
+        // only record 1 test (simulating interruption)
+        listener.executionFinished(
+                testIdentifier("io.github.nizos.tddguard.junit5.TddGuardListenerTest$TwoTestsFixture", "testOne"),
+                TestExecutionResult.successful());
+        listener.testPlanExecutionFinished(testPlan);
+
+        String content = Files.readString(tmp.resolve(DATA_PATH));
+        assertTrue(content.contains("\"reason\": \"interrupted\""));
+    }
+
+    // Inner class fixture — two real @Test methods
+    static class TwoTestsFixture {
+        @org.junit.jupiter.api.Test
+        void testOne() {}
+        @org.junit.jupiter.api.Test
+        void testTwo() {}
     }
 
     private static TddGuardListener createListener(Path projectRoot,
