@@ -3,7 +3,7 @@ import { HookData, HookDataSchema } from '../contracts/schemas/toolSchemas'
 import { LintData, LintDataSchema, LintResult } from '../contracts/schemas/lintSchemas'
 import { Storage } from '../storage/Storage'
 import { Linter } from '../linters/Linter'
-import { defaultResult } from '../contracts/validationResults'
+import { defaultResult, block } from '../contracts/validationResults'
 
 export class PostToolLintHandler {
   private readonly linter: Linter | null
@@ -73,10 +73,9 @@ function createBlockResult(lintData: LintData): ValidationResult {
   const formattedIssues = formatLintIssues(lintData.issues)
   const summary = `\n✖ ${lintData.errorCount + lintData.warningCount} problems (${lintData.errorCount} errors, ${lintData.warningCount} warnings)`
   
-  return {
-    decision: 'block',
-    reason: `Lint issues detected:${formattedIssues}\n${summary}\n\nPlease fix these issues before proceeding.`
-  }
+  return block(
+    `Lint issues detected:${formattedIssues}\n${summary}\n\nPlease fix these issues before proceeding.`
+  )
 }
 
 function formatLintIssues(issues: LintData['issues']): string {

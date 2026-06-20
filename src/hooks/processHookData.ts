@@ -9,7 +9,7 @@ import { GuardManager } from '../guard/GuardManager'
 import { Storage } from '../storage/Storage'
 import { FileStorage } from '../storage/FileStorage'
 import { ValidationResult } from '../contracts/types/ValidationResult'
-import { defaultResult } from '../contracts/validationResults'
+import { defaultResult, block } from '../contracts/validationResults'
 import { Context } from '../contracts/types/Context'
 import { countTestDefinitions } from './testCounter'
 import {
@@ -278,10 +278,9 @@ async function checkLintNotification(storage: Storage, hookData: HookData): Prom
     }
     await storage.saveLint(JSON.stringify(updatedLintData))
 
-    return {
-      decision: 'block',
-      reason: 'Code quality issues detected. You need to fix those first before making any other changes. Remember to exercise system thinking and design awareness to ensure continuous architectural improvements. Consider: design patterns, SOLID principles, DRY, types and interfaces, and architectural improvements. Apply equally to implementation and test code. Use test data factories, helpers, and beforeEach to better organize tests.'
-    }
+    return block(
+      'Code quality issues detected. You need to fix those first before making any other changes. Remember to exercise system thinking and design awareness to ensure continuous architectural improvements. Consider: design patterns, SOLID principles, DRY, types and interfaces, and architectural improvements. Apply equally to implementation and test code. Use test data factories, helpers, and beforeEach to better organize tests.'
+    )
   }
 
   return defaultResult

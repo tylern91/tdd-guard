@@ -1,4 +1,5 @@
 import { ValidationResult } from '../contracts/types/ValidationResult'
+import { block } from '../contracts/validationResults'
 import { Context } from '../contracts/types/Context'
 import { IModelClient } from '../contracts/types/ModelClient'
 import { ClaudeCli } from './models/ClaudeCli'
@@ -25,10 +26,7 @@ export async function validator(
         ? 'No response from model, try again'
         : `Error during validation: ${errorMessage}`
 
-    return {
-      decision: 'block',
-      reason,
-    }
+    return block(reason)
   }
 }
 
