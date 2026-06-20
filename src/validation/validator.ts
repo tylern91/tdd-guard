@@ -150,8 +150,8 @@ function isValidJson(str: string): boolean {
 function normalizeValidationResult(
   parsed: ModelResponseJson
 ): ValidationResult {
-  return {
-    decision: parsed.decision ?? undefined,
-    reason: parsed.reason,
+  if (parsed.decision === 'block') {
+    return block(parsed.reason)
   }
+  return { decision: undefined, reason: parsed.reason }
 }
