@@ -7,7 +7,7 @@ import { generateDynamicContext } from './context/context'
 
 interface ModelResponseJson {
   decision: 'block' | 'approve' | null
-  reason: string
+  reason?: string
 }
 
 export async function validator(
@@ -89,9 +89,8 @@ function extractFromJsonCodeBlock(response: string): string | null {
 }
 
 function extractPlainJson(response: string): string | null {
-  // Simple regex to find JSON objects containing both "decision" and "reason" (in any order)
-  const pattern =
-    /\{[^{}]*"decision"[^{}]*"reason"[^{}]*}|\{[^{}]*"reason"[^{}]*"decision"[^{}]*}/g
+  // Find the JSON object carrying the decision; the reason is optional.
+  const pattern = /\{[^{}]*"decision"[^{}]*}/g
   const matches = response.match(pattern)
 
   if (!matches) return null
@@ -151,7 +150,7 @@ function normalizeValidationResult(
   parsed: ModelResponseJson
 ): ValidationResult {
   if (parsed.decision === 'block') {
-    return block(parsed.reason)
+    return block(parsed.reason ?? '')
   }
-  return { decision: undefined, reason: parsed.reason }
+  return { decision: undefined, reason: parsed.reason ?? '' }
 }

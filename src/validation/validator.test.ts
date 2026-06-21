@@ -174,6 +174,16 @@ This violates TDD principles as explained in the numbered list above.
             'Multiple test addition violation - adding 2 new tests simultaneously instead of following TDD discipline of one test at a time',
         },
       },
+      {
+        name: 'should treat a reasonless allow as an empty reason',
+        modelResponse: '{"decision": null}',
+        expected: { decision: undefined, reason: '' },
+      },
+      {
+        name: 'should treat a fence-less decision-only response as an allow',
+        modelResponse: 'Looks fine.\n{"decision": null}',
+        expected: { decision: undefined, reason: '' },
+      },
     ]
 
     testCases.forEach(({ name, modelResponse, expected }) => {
