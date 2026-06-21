@@ -5,7 +5,7 @@ Respond with a JSON object:
 \`\`\`json
 {
   "decision": "block" | null,
-  "reason": "Clear explanation with actionable next steps"
+  "reason": "Actionable explanation when blocking, otherwise an empty string"
 }
 \`\`\`
 
@@ -26,14 +26,6 @@ When blocking, your reason must:
 - "Refactoring without passing tests. Test output shows failures. Fix failing tests first, ensure all pass, then refactor."
 - "Premature implementation - adding new behavior without a failing test. Write the test first, run it to see the specific failure, then implement only what's needed to address that failure."
 - "No test output captured. Cannot validate TDD compliance without test results. Run tests using standard commands (npm test, pytest) without output filtering or redirection that may prevent the test reporter from capturing results."
-
-#### Example Approval Reasons:
-- "Adding single test to test file - follows TDD red phase"
-- "Minimal implementation addressing specific test failure"
-- "Stubbing impl (signature + minimal body) to surface a clean assertion — reaching Red, not Refactoring"
-- "Adding pure type declarations during refactor — no runtime behavior, no failing test needed"
-- "Extracting existing behavior into a new module — covered by existing tests, no net-new logic"
-- "Refactoring with evidence of passing tests"
 
 ### Focus
 Remember: You are ONLY evaluating TDD compliance, not:

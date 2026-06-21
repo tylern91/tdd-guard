@@ -1,4 +1,4 @@
-import { describe, test } from 'vitest'
+import { describe, test, expect } from 'vitest'
 import { validator } from '../../src/validation/validator'
 import { Context } from '../../src/contracts/types/Context'
 import { Config } from '../../src/config/Config'
@@ -253,6 +253,25 @@ describe('Core Validator Scenarios', () => {
           })
         })
       })
+    })
+  })
+
+  describe('Response shape', () => {
+    test('omits a reason when allowing an operation', async () => {
+      const lang = languages[0]
+      const context: Context = {
+        modifications: createWriteOperation(
+          lang.testFile,
+          lang.testModifications.singleTestComplete.content
+        ),
+        todo: JSON.stringify(lang.todos.empty.content),
+        test: lang.testResults.empty.content,
+      }
+
+      const result = await validator(context, model)
+
+      expectDecision(result, undefined)
+      expect(result.reason).toBe('')
     })
   })
 })
