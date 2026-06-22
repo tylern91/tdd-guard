@@ -19,9 +19,16 @@ export class ClaudeAgentSdk implements IModelClient {
       if (message.type !== 'result') continue
 
       if (message.subtype === 'success') {
+        if (message.is_error) {
+          throw new Error(message.result)
+        }
         return message.result
       }
-      throw new Error(`Claude Agent SDK error: ${message.subtype}`)
+      throw new Error(
+        message.errors.length
+          ? message.errors.join('; ')
+          : `Claude Agent SDK error: ${message.subtype}`
+      )
     }
 
     throw new Error('Claude Agent SDK error: No result message received')

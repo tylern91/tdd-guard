@@ -120,7 +120,7 @@ describe('ClaudeAgentSdk', () => {
     })
 
     test('throws error when query returns error subtype', async () => {
-      const { client } = setupClient({ subtype: 'error_max_turns' })
+      const { client } = setupClient({ subtype: 'error_max_turns', errors: [] })
 
       await expect(client.ask('test')).rejects.toThrow(
         'Claude Agent SDK error: error_max_turns'
@@ -133,6 +133,25 @@ describe('ClaudeAgentSdk', () => {
       await expect(client.ask('test')).rejects.toThrow(
         'Claude Agent SDK error: No result message received'
       )
+    })
+
+    test('surfaces the API error text when a success result is flagged as an error', async () => {
+      const { client } = setupClient({
+        subtype: 'success',
+        is_error: true,
+        result: 'Credit balance too low',
+      })
+
+      await expect(client.ask('test')).rejects.toThrow('Credit balance too low')
+    })
+
+    test('surfaces the error details when the result subtype is an error', async () => {
+      const { client } = setupClient({
+        subtype: 'error_during_execution',
+        errors: ['session crashed'],
+      })
+
+      await expect(client.ask('test')).rejects.toThrow('session crashed')
     })
   })
 })
