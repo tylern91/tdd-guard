@@ -112,7 +112,7 @@ describe('UserPromptHandler', () => {
   })
 
   describe('getDisabledResult', () => {
-    test('returns defaultResult when guard is disabled', async () => {
+    test('returns allow when guard is disabled', async () => {
       await guardManager.disable()
 
       const result = await handler.getDisabledResult()

@@ -3,7 +3,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { processHookData } from './processHookData'
-import { defaultResult } from '../contracts/validationResults'
+import { allow } from '../contracts/validationResults'
 import { testData } from '@testUtils'
 import { UserPromptHandler } from './userPromptHandler'
 import { GuardManager } from '../guard/GuardManager'
@@ -190,7 +190,7 @@ describe('processHookData', () => {
     const result = await sut.process(TODO_WRITE_HOOK_DATA)
 
     expect(sut.validatorHasBeenCalled()).toBe(false)
-    expect(result).toEqual(defaultResult)
+    expect(result).toEqual(allow)
   })
 
   it('should handle hook data with invalid schema gracefully', async () => {
@@ -206,7 +206,7 @@ describe('processHookData', () => {
 
     // Should return default result without calling validator
     expect(sut.validatorHasBeenCalled()).toBe(false)
-    expect(result).toEqual(defaultResult)
+    expect(result).toEqual(allow)
   })
 
   describe('PostToolUse hook handling', () => {
@@ -245,7 +245,7 @@ describe('processHookData', () => {
         const result = await sut.process(nonCodeFileData)
         
         expect(sut.validatorHasBeenCalled()).toBe(false)
-        expect(result).toEqual(defaultResult)
+        expect(result).toEqual(allow)
       }
     })
 
@@ -282,7 +282,7 @@ describe('processHookData', () => {
       const result = await sut.process(fileData)
       
       expect(sut.validatorHasBeenCalled()).toBe(false)
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
     })
   })
 
@@ -419,8 +419,8 @@ describe('processHookData', () => {
       expect(await sut.getConfig()).toBe(JSON.stringify({ guardEnabled: true }))
     })
 
-    it('should return defaultResult when SessionStart event is processed', () => {
-      expect(result).toEqual(defaultResult)
+    it('should return allow when SessionStart event is processed', () => {
+      expect(result).toEqual(allow)
     })
   })
 
@@ -440,7 +440,7 @@ describe('processHookData', () => {
       const result = await sut.process(singleTestEdit)
 
       expect(sut.validatorHasBeenCalled()).toBe(false)
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
     })
 
     it('should call validator when adding multiple tests to a test file', async () => {
@@ -491,7 +491,7 @@ describe('Calculator', () => {
       const result = await sut.process(newTestFile)
 
       expect(sut.validatorHasBeenCalled()).toBe(false)
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
     })
 
     it('should call validator for test files with unknown language', async () => {
@@ -528,7 +528,7 @@ describe('Calculator', () => {
       const result = await sut.process(editAddingOneTest)
 
       expect(sut.validatorHasBeenCalled()).toBe(false)
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
     })
 
     it('should skip validator when Write adds one new test to existing test file', async () => {
@@ -540,7 +540,7 @@ it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
       })
 
       expect(hasBeenValidated()).toBe(false)
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
     })
 
     it('should call validator when Write removes a test from a test file', async () => {
@@ -647,7 +647,7 @@ it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
       })
 
       expect(mockValidator).not.toHaveBeenCalled()
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
     })
 
     it('should proceed with validation when TDD Guard is enabled', async () => {

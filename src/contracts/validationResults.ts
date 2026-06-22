@@ -1,6 +1,6 @@
 import { ValidationResult } from './types/ValidationResult'
 
-export const defaultResult: ValidationResult = {
+export const allow: ValidationResult = {
   decision: undefined,
   reason: '',
 }

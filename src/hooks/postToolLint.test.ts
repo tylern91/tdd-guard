@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { handlePostToolLint, PostToolLintHandler } from './postToolLint'
-import { defaultResult } from '../contracts/validationResults'
+import { allow } from '../contracts/validationResults'
 import { testData } from '@testUtils'
 import { Linter } from '../linters/Linter'
 import { MemoryStorage } from '../storage/MemoryStorage'
@@ -37,7 +37,7 @@ describe('postToolLint', () => {
       operation: { hook_event_name: 'PreToolUse' }
     })
 
-    expect(result).toEqual(defaultResult)
+    expect(result).toEqual(allow)
     expect(parsedLint).toBeNull()
   })
 
@@ -78,7 +78,7 @@ describe('postToolLint', () => {
         }
       })
 
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
       expect(parsedLint).toBeNull()
     })
 
@@ -117,7 +117,7 @@ describe('postToolLint', () => {
           lintResult: testData.lintResultWithError()
         })
 
-        expect(result).toEqual(defaultResult)
+        expect(result).toEqual(allow)
       })
 
       it('saves hasNotifiedAboutLintIssues as false', async () => {
@@ -184,7 +184,7 @@ describe('postToolLint', () => {
       const result = await handlePostToolLint(hookData, storage, testLinter)
 
       // Should not block (treats error as no stored data)
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
 
       // Reset the spy and check that storage now contains the new lint data
       getLintSpy.mockRestore()
@@ -207,7 +207,7 @@ describe('postToolLint', () => {
 
       const result = await handler.handle(JSON.stringify(hookData))
 
-      expect(result).toEqual(defaultResult)
+      expect(result).toEqual(allow)
       const savedLint = await storage.getLint()
       expect(savedLint).toBeNull()
     })
@@ -232,7 +232,7 @@ describe('postToolLint', () => {
             initialTestData: testData.passingTestResults()
           })
 
-          expect(result).toEqual(defaultResult)
+          expect(result).toEqual(allow)
         })
       })
     })

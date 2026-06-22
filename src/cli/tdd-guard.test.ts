@@ -37,7 +37,7 @@ describe('tdd-guard CLI', () => {
     })
 
     test('emits no stdout when result has no actionable decision', async () => {
-      // `defaultResult` serializes to `{"reason":""}` (JSON.stringify drops
+      // `allow` serializes to `{"reason":""}` (JSON.stringify drops
       // undefined), which Claude Code's UserPromptSubmit hook reads as a
       // decision payload and uses to silently consume the user's prompt -
       // including built-in slash commands like `/clear`.

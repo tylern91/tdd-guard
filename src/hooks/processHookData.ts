@@ -9,7 +9,7 @@ import { GuardManager } from '../guard/GuardManager'
 import { Storage } from '../storage/Storage'
 import { FileStorage } from '../storage/FileStorage'
 import { ValidationResult } from '../contracts/types/ValidationResult'
-import { defaultResult, block } from '../contracts/validationResults'
+import { allow, block } from '../contracts/validationResults'
 import { Context } from '../contracts/types/Context'
 import { countTestDefinitions } from './testCounter'
 import {
@@ -80,7 +80,7 @@ export async function processHookData(
   // Skip validation for ignored files based on patterns
   const filePath = extractFilePath(parsedData)
   if (filePath && await guardManager.shouldIgnoreFile(filePath)) {
-    return defaultResult
+    return allow
   }
 
   await enrichWriteOperation(parsedData)
@@ -89,7 +89,7 @@ export async function processHookData(
   // Process SessionStart events
   if (parsedData.hook_event_name === 'SessionStart') {
     await sessionHandler.processSessionStart(inputData)
-    return defaultResult
+    return allow
   }
   
   // Process user commands
@@ -112,7 +112,7 @@ export async function processHookData(
 
   const hookResult = HookDataSchema.safeParse(parsedData)
   if (!hookResult.success) {
-    return defaultResult
+    return allow
   }
 
   await processHookEvent(parsedData, storage)
@@ -123,7 +123,7 @@ export async function processHookData(
   }
 
   if (shouldSkipValidation(hookResult.data)) {
-    return defaultResult
+    return allow
   }
 
   // For PreToolUse, check if we should notify about lint issues
@@ -135,7 +135,7 @@ export async function processHookData(
   }
 
   if (isAllowedTestAddition(hookResult.data)) {
-    return defaultResult
+    return allow
   }
 
   return await performValidation(deps)
@@ -222,7 +222,7 @@ async function performValidation(deps: ProcessHookDataDeps): Promise<ValidationR
     return await deps.validator(context)
   }
   
-  return defaultResult
+  return allow
 }
 
 async function checkLintNotification(storage: Storage, hookData: HookData): Promise<ValidationResult> {
@@ -245,7 +245,7 @@ async function checkLintNotification(storage: Storage, hookData: HookData): Prom
 
   // Only proceed if tests are passing
   if (!testsPassing) {
-    return defaultResult
+    return allow
   }
 
   // Get lint data
@@ -256,12 +256,12 @@ async function checkLintNotification(storage: Storage, hookData: HookData): Prom
       lintData = LintDataSchema.parse(JSON.parse(lintStr))
     }
   } catch {
-    return defaultResult
+    return allow
   }
 
   // Only proceed if lint data exists
   if (!lintData) {
-    return defaultResult
+    return allow
   }
 
   const hasIssues = lintData.errorCount > 0 || lintData.warningCount > 0
@@ -283,5 +283,5 @@ async function checkLintNotification(storage: Storage, hookData: HookData): Prom
     )
   }
 
-  return defaultResult
+  return allow
 }

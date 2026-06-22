@@ -3,7 +3,7 @@ import { HookData, HookDataSchema } from '../contracts/schemas/toolSchemas'
 import { LintData, LintDataSchema, LintResult } from '../contracts/schemas/lintSchemas'
 import { Storage } from '../storage/Storage'
 import { Linter } from '../linters/Linter'
-import { defaultResult, block } from '../contracts/validationResults'
+import { allow, block } from '../contracts/validationResults'
 
 export class PostToolLintHandler {
   private readonly linter: Linter | null
@@ -17,7 +17,7 @@ export class PostToolLintHandler {
   async handle(hookData: string): Promise<ValidationResult> {
     // If no linter is configured, skip linting
     if (!this.linter) {
-      return defaultResult
+      return allow
     }
     return handlePostToolLint(hookData, this.storage, this.linter)
   }
@@ -106,13 +106,13 @@ export async function handlePostToolLint(
 ): Promise<ValidationResult> {
   const validatedHookData = parseAndValidateHookData(hookData)
   if (!validatedHookData) {
-    return defaultResult
+    return allow
   }
 
   // Extract file paths from tool operation
   const filePaths = extractFilePaths(validatedHookData)
   if (filePaths.length === 0) {
-    return defaultResult
+    return allow
   }
 
   // Get current lint data to check hasNotifiedAboutLintIssues state
@@ -134,7 +134,7 @@ export async function handlePostToolLint(
     return createBlockResult(lintData)
   }
 
-  return defaultResult
+  return allow
 }
 
 function extractFilePaths(hookData: HookData): string[] {

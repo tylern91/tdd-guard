@@ -1,6 +1,6 @@
 import { GuardManager } from '../guard/GuardManager'
 import { ValidationResult } from '../contracts/types/ValidationResult'
-import { defaultResult, stopSession } from '../contracts/validationResults'
+import { allow, stopSession } from '../contracts/validationResults'
 
 export class UserPromptHandler {
   private readonly guardManager: GuardManager
@@ -40,7 +40,7 @@ export class UserPromptHandler {
   async getDisabledResult(): Promise<ValidationResult | undefined> {
     const isEnabled = await this.guardManager.isEnabled()
     if (!isEnabled) {
-      return defaultResult
+      return allow
     }
     return undefined
   }
