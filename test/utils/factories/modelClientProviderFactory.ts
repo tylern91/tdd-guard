@@ -13,7 +13,7 @@ class MockModelClientProvider extends ModelClientProvider {
     return {
       ask: async () =>
         JSON.stringify({
-          decision: undefined,
+          decision: null,
           reason: `Using mock model client with modelType: ${actualConfig.modelType}`,
         }),
     }

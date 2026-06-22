@@ -150,5 +150,10 @@ function normalizeValidationResult(
   if (parsed.decision === 'block') {
     return block(parsed.reason ?? '')
   }
-  return { decision: undefined, reason: parsed.reason ?? '' }
+  if (parsed.decision === null) {
+    return { decision: undefined, reason: parsed.reason ?? '' }
+  }
+  throw new Error(
+    `The model response did not include a valid decision: ${JSON.stringify(parsed)}`
+  )
 }

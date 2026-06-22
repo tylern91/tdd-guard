@@ -246,6 +246,12 @@ This violates TDD principles as explained in the numbered list above.
       expect(result.decision).toBe('block')
       expect(result.reason).toContain('Credit balance too low')
     })
+
+    test('blocks when the response has no usable decision', async () => {
+      const { result } = await runValidator('{"reason": "explanation only"}')
+
+      expect(result.decision).toBe('block')
+    })
   })
 
   // Test helper
