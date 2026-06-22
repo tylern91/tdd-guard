@@ -17,31 +17,29 @@ export async function validator(
   try {
     const prompt = generateDynamicContext(context)
     const response = await modelClient.ask(prompt)
+    if (!response) {
+      return block('No response from model, try again')
+    }
     return parseModelResponse(response)
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error'
-    const reason =
-      errorMessage === 'No response from model'
-        ? 'No response from model, try again'
-        : `Error during validation: ${errorMessage}`
-
-    return block(reason)
+    return block(`Error during validation: ${errorMessage}`)
   }
 }
 
 function parseModelResponse(response: string): ValidationResult {
   const jsonString = extractJsonString(response)
-  const parsed = JSON.parse(jsonString)
+  let parsed: ModelResponseJson
+  try {
+    parsed = JSON.parse(jsonString)
+  } catch {
+    throw new Error(`The model did not return valid JSON: ${response}`)
+  }
   return normalizeValidationResult(parsed)
 }
 
 function extractJsonString(response: string): string {
-  // Handle undefined/null responses
-  if (!response) {
-    throw new Error('No response from model')
-  }
-
   const jsonFromCodeBlock = extractFromJsonCodeBlock(response)
   if (jsonFromCodeBlock) {
     return jsonFromCodeBlock

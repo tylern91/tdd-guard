@@ -239,6 +239,13 @@ This violates TDD principles as explained in the numbered list above.
       expect(result.reason).not.toContain('Error during validation')
       expect(result.reason).toBe('No response from model, try again')
     })
+
+    test('surfaces the model response when it is not valid JSON', async () => {
+      const { result } = await runValidator('Credit balance too low')
+
+      expect(result.decision).toBe('block')
+      expect(result.reason).toContain('Credit balance too low')
+    })
   })
 
   // Test helper
