@@ -14,6 +14,8 @@ Automated Test-Driven Development enforcement for Claude Code.
 
 TDD Guard ensures Claude Code follows Test-Driven Development principles. When your agent tries to skip tests or over-implement, TDD Guard blocks the action and explains what needs to happen instead.
 
+[Probity](https://github.com/nizos/probity) is where new development now happens. It validates using session activity for more reliable results, and works with more agents, languages, and test runners. TDD Guard remains maintained for projects that rely on it.
+
 ## Features
 
 - **Test-First Enforcement** - Blocks implementation without failing tests
@@ -74,14 +76,6 @@ Contributions are welcome! See the [contributing guidelines](CONTRIBUTING.md) to
 - Validate file modifications made through MCPs and shell commands
 - Encourage meaningful refactoring opportunities when tests are green
 - Add support for multiple concurrent sessions per project
-
-## Related Projects
-
-### [Probity](https://github.com/nizos/probity)
-
-Enforces TDD and other policies across Claude Code, Codex, and Copilot. Works with any language and test runner. Uses session activity for validation, giving it a fuller picture when distinguishing refactors from new behavior.
-
-For new projects, [Probity](https://github.com/nizos/probity) is the better starting point. Stay on TDD Guard if you use its lint integration. Probity doesn't have an equivalent yet.
 
 ## Support
 
