@@ -64,12 +64,16 @@ describe('HookEvents', () => {
     test('overwrites previous content instead of appending', async () => {
       // First write
       await sut.processEvent(
-        testData.writeOperation({ tool_input: { file_path: '/path', content: 'first content' }})
+        testData.writeOperation({
+          tool_input: { file_path: '/path', content: 'first content' },
+        })
       )
 
       // Second write should overwrite
       await sut.processEvent(
-        testData.writeOperation({ tool_input: { file_path: '/path', content: 'second content' }})
+        testData.writeOperation({
+          tool_input: { file_path: '/path', content: 'second content' },
+        })
       )
 
       const logContent = await sut.readModifications()

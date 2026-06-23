@@ -13,12 +13,20 @@ import { allow, block } from '../contracts/validationResults'
 import { Context } from '../contracts/types/Context'
 import { countTestDefinitions } from './testCounter'
 import {
-  HookDataSchema, ToolOperationSchema,
-  isEditOperation, isMultiEditOperation, isWriteOperation, isFileModification,
-  type ToolOperation, type FileModification
+  HookDataSchema,
+  ToolOperationSchema,
+  isEditOperation,
+  isMultiEditOperation,
+  isWriteOperation,
+  isFileModification,
+  type ToolOperation,
+  type FileModification,
 } from '../contracts/schemas/toolSchemas'
 import { PytestResultSchema } from '../contracts/schemas/pytestSchemas'
-import { isTestPassing, TestResultSchema } from '../contracts/schemas/reporterSchemas'
+import {
+  isTestPassing,
+  TestResultSchema,
+} from '../contracts/schemas/reporterSchemas'
 import { LintDataSchema } from '../contracts/schemas/lintSchemas'
 import { readOldFileContent } from './readOldFileContent'
 
@@ -32,19 +40,23 @@ function extractFilePath(parsedData: unknown): string | null {
   if (!parsedData || typeof parsedData !== 'object') {
     return null
   }
-  
+
   const data = parsedData as Record<string, unknown>
   const toolInput = data.tool_input
-  
-  if (!toolInput || typeof toolInput !== 'object' || !('file_path' in toolInput)) {
+
+  if (
+    !toolInput ||
+    typeof toolInput !== 'object' ||
+    !('file_path' in toolInput)
+  ) {
     return null
   }
-  
+
   const filePath = (toolInput as Record<string, unknown>).file_path
   if (typeof filePath !== 'string') {
     return null
   }
-  
+
   return filePath
 }
 
@@ -76,22 +88,23 @@ export async function processHookData(
   // Initialize dependencies
   const storage = deps.storage ?? new FileStorage()
   const guardManager = new GuardManager(storage)
-  const userPromptHandler = deps.userPromptHandler ?? new UserPromptHandler(guardManager)
+  const userPromptHandler =
+    deps.userPromptHandler ?? new UserPromptHandler(guardManager)
 
   // Skip validation for ignored files based on patterns
   const filePath = extractFilePath(parsedData)
-  if (filePath && await guardManager.shouldIgnoreFile(filePath)) {
+  if (filePath && (await guardManager.shouldIgnoreFile(filePath))) {
     return allow
   }
 
   const sessionHandler = new SessionHandler(storage)
-  
+
   // Process SessionStart events
   if (parsedData.hook_event_name === 'SessionStart') {
     await sessionHandler.processSessionStart(inputData)
     return allow
   }
-  
+
   // Process user commands
   const stateResult = await userPromptHandler.processUserCommand(inputData)
   if (stateResult) {
@@ -108,7 +121,6 @@ export async function processHookData(
   const linterProvider = new LinterProvider()
   const linter = linterProvider.getLinter()
   const lintHandler = new PostToolLintHandler(storage, linter)
-
 
   const hookResult = HookDataSchema.safeParse(parsedData)
   if (!hookResult.success) {
@@ -203,12 +215,14 @@ function countAddedTests(operation: ToolOperation, language: Language): number {
   return 0
 }
 
-async function performValidation(deps: ProcessHookDataDeps): Promise<ValidationResult> {
+async function performValidation(
+  deps: ProcessHookDataDeps
+): Promise<ValidationResult> {
   if (deps.validator && deps.storage) {
     const context = await buildContext(deps.storage)
     return await deps.validator(context)
   }
-  
+
   return allow
 }
 
@@ -264,7 +278,7 @@ async function checkLintNotification(
     // Update the notification flag and save
     const updatedLintData = {
       ...lintData,
-      hasNotifiedAboutLintIssues: true
+      hasNotifiedAboutLintIssues: true,
     }
     await storage.saveLint(JSON.stringify(updatedLintData))
 

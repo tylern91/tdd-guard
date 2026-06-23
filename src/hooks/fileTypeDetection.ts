@@ -14,7 +14,14 @@ export function isTestFile(filePath: string): boolean {
   return TEST_FILE_PATTERNS.some((pattern) => pattern.test(filePath))
 }
 
-export type Language = 'typescript' | 'javascript' | 'python' | 'go' | 'ruby' | 'php' | 'rust'
+export type Language =
+  | 'typescript'
+  | 'javascript'
+  | 'python'
+  | 'go'
+  | 'ruby'
+  | 'php'
+  | 'rust'
 
 const EXTENSION_TO_LANGUAGE: Record<string, Language> = {
   '.ts': 'typescript',

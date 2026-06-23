@@ -160,7 +160,7 @@ describe('processHookData', () => {
     const result = await sut.process(EDIT_HOOK_DATA)
 
     const actualContext = sut.getValidatorCallArgs()
-    
+
     // Verify the context, parsing JSON to handle formatting differences
     expect({
       ...actualContext,
@@ -175,8 +175,8 @@ describe('processHookData', () => {
         hasIssues: false,
         totalIssues: 0,
         issuesByFile: new Map(),
-        summary: 'No lint data available'
-      }
+        summary: 'No lint data available',
+      },
     })
     expect(result).toEqual(BLOCK_RESULT)
   })
@@ -199,7 +199,7 @@ describe('processHookData', () => {
       // This doesn't match FullHookEventSchema (missing required fields)
       // and has invalid types for SimpleHookDataSchema
       tool_name: 123, // Should be string
-      tool_input: "not an object", // Should be object
+      tool_input: 'not an object', // Should be object
     }
 
     const result = await sut.process(invalidHookData)
@@ -214,7 +214,7 @@ describe('processHookData', () => {
       const postToolUseHook = {
         ...EDIT_HOOK_DATA,
         hook_event_name: 'PostToolUse',
-        tool_output: { success: true }
+        tool_output: { success: true },
       }
 
       const result = await sut.process(postToolUseHook)
@@ -232,18 +232,18 @@ describe('processHookData', () => {
       for (const pattern of GuardManager.DEFAULT_IGNORE_PATTERNS) {
         // Convert pattern to file path (e.g., '*.md' -> '/path/to/file.md')
         const filePath = pattern.replaceAll('*', '/path/to/file')
-        
+
         const nonCodeFileData = {
           ...EDIT_HOOK_DATA,
           tool_input: {
             file_path: filePath,
             old_string: 'old content',
-            new_string: 'new content'
-          }
+            new_string: 'new content',
+          },
         }
 
         const result = await sut.process(nonCodeFileData)
-        
+
         expect(sut.validatorHasBeenCalled()).toBe(false)
         expect(result).toEqual(allow)
       }
@@ -262,43 +262,50 @@ describe('processHookData', () => {
         description: 'files matching glob patterns',
         filePath: 'src/api/schema.generated.ts',
       },
-    ])('skips validation when using custom ignore patterns for $description', async ({ filePath }) => {
-      // Set up custom ignore patterns
-      const customPatterns = ['*.custom', 'build/**', '**/*.generated.ts']
-      await sut.storage.saveConfig(JSON.stringify({
-        guardEnabled: true,
-        ignorePatterns: customPatterns
-      }))
+    ])(
+      'skips validation when using custom ignore patterns for $description',
+      async ({ filePath }) => {
+        // Set up custom ignore patterns
+        const customPatterns = ['*.custom', 'build/**', '**/*.generated.ts']
+        await sut.storage.saveConfig(
+          JSON.stringify({
+            guardEnabled: true,
+            ignorePatterns: customPatterns,
+          })
+        )
 
-      const fileData = {
-        ...EDIT_HOOK_DATA,
-        tool_input: {
-          file_path: filePath,
-          old_string: 'old content',
-          new_string: 'new content'
+        const fileData = {
+          ...EDIT_HOOK_DATA,
+          tool_input: {
+            file_path: filePath,
+            old_string: 'old content',
+            new_string: 'new content',
+          },
         }
-      }
 
-      const result = await sut.process(fileData)
-      
-      expect(sut.validatorHasBeenCalled()).toBe(false)
-      expect(result).toEqual(allow)
-    })
+        const result = await sut.process(fileData)
+
+        expect(sut.validatorHasBeenCalled()).toBe(false)
+        expect(result).toEqual(allow)
+      }
+    )
   })
 
   describe('PreToolUse lint notification', () => {
     it('should block when tests pass, lint issues exist, and not yet notified', async () => {
       // Setup: passing tests
       await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults())
+        test: JSON.stringify(testData.passingTestResults()),
       })
-      
+
       // Setup: lint issues with notification flag false
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithError({
-          hasNotifiedAboutLintIssues: false
-        })
-      ))
+      await sut.storage.saveLint(
+        JSON.stringify(
+          testData.lintDataWithError({
+            hasNotifiedAboutLintIssues: false,
+          })
+        )
+      )
 
       const result = await sut.process(EDIT_HOOK_DATA)
 
@@ -311,15 +318,17 @@ describe('processHookData', () => {
     it('should not block when tests are failing (red phase)', async () => {
       // Setup: failing tests
       await sut.populateStorage({
-        test: JSON.stringify(testData.failedTestResults())
+        test: JSON.stringify(testData.failedTestResults()),
       })
-      
+
       // Setup: lint issues with notification flag false
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithError({
-          hasNotifiedAboutLintIssues: false
-        })
-      ))
+      await sut.storage.saveLint(
+        JSON.stringify(
+          testData.lintDataWithError({
+            hasNotifiedAboutLintIssues: false,
+          })
+        )
+      )
 
       const result = await sut.process(EDIT_HOOK_DATA)
 
@@ -331,15 +340,17 @@ describe('processHookData', () => {
     it('should not block when no lint issues exist', async () => {
       // Setup: passing tests
       await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults())
+        test: JSON.stringify(testData.passingTestResults()),
       })
-      
+
       // Setup: no lint issues
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithoutErrors({
-          hasNotifiedAboutLintIssues: false
-        })
-      ))
+      await sut.storage.saveLint(
+        JSON.stringify(
+          testData.lintDataWithoutErrors({
+            hasNotifiedAboutLintIssues: false,
+          })
+        )
+      )
 
       const result = await sut.process(EDIT_HOOK_DATA)
 
@@ -351,15 +362,17 @@ describe('processHookData', () => {
     it('should not block when already notified', async () => {
       // Setup: passing tests
       await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults())
+        test: JSON.stringify(testData.passingTestResults()),
       })
-      
+
       // Setup: lint issues with notification flag true
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithError({
-          hasNotifiedAboutLintIssues: true
-        })
-      ))
+      await sut.storage.saveLint(
+        JSON.stringify(
+          testData.lintDataWithError({
+            hasNotifiedAboutLintIssues: true,
+          })
+        )
+      )
 
       const result = await sut.process(EDIT_HOOK_DATA)
 
@@ -371,15 +384,17 @@ describe('processHookData', () => {
     it('should set notification flag after blocking', async () => {
       // Setup: passing tests
       await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults())
+        test: JSON.stringify(testData.passingTestResults()),
       })
-      
+
       // Setup: lint issues with notification flag false
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithError({
-          hasNotifiedAboutLintIssues: false
-        })
-      ))
+      await sut.storage.saveLint(
+        JSON.stringify(
+          testData.lintDataWithError({
+            hasNotifiedAboutLintIssues: false,
+          })
+        )
+      )
 
       await sut.process(EDIT_HOOK_DATA)
 
@@ -400,7 +415,7 @@ describe('processHookData', () => {
         todo: JSON.stringify(testData.todoWriteOperation()),
         modifications: JSON.stringify(testData.editOperation()),
         lint: JSON.stringify(testData.lintDataWithoutErrors()),
-        config: JSON.stringify({ guardEnabled: true })
+        config: JSON.stringify({ guardEnabled: true }),
       })
 
       const sessionStartData = testData.sessionStart()
@@ -607,10 +622,12 @@ it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
       const guardManager = new GuardManager(storage)
       await guardManager.disable() // Ensure it starts disabled
       const userPromptHandler = new UserPromptHandler(guardManager)
-      const userPromptData = testData.userPromptSubmit({ prompt: 'tdd-guard on' })
-      
-      await processHookData(JSON.stringify(userPromptData), { 
-        userPromptHandler 
+      const userPromptData = testData.userPromptSubmit({
+        prompt: 'tdd-guard on',
+      })
+
+      await processHookData(JSON.stringify(userPromptData), {
+        userPromptHandler,
       })
 
       expect(await guardManager.isEnabled()).toBe(true)
@@ -621,10 +638,12 @@ it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
       const guardManager = new GuardManager(storage)
       await guardManager.enable() // Ensure it starts enabled
       const userPromptHandler = new UserPromptHandler(guardManager)
-      const userPromptData = testData.userPromptSubmit({ prompt: 'tdd-guard off' })
-      
-      await processHookData(JSON.stringify(userPromptData), { 
-        userPromptHandler 
+      const userPromptData = testData.userPromptSubmit({
+        prompt: 'tdd-guard off',
+      })
+
+      await processHookData(JSON.stringify(userPromptData), {
+        userPromptHandler,
       })
 
       expect(await guardManager.isEnabled()).toBe(false)
@@ -636,14 +655,14 @@ it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
       await guardManager.disable() // Ensure guard is disabled
       const userPromptHandler = new UserPromptHandler(guardManager)
       const mockValidator = vi.fn()
-      
+
       // Try to process an edit operation
       const editData = testData.editOperation()
-      
-      const result = await processHookData(JSON.stringify(editData), { 
+
+      const result = await processHookData(JSON.stringify(editData), {
         storage,
         userPromptHandler,
-        validator: mockValidator
+        validator: mockValidator,
       })
 
       expect(mockValidator).not.toHaveBeenCalled()
@@ -656,14 +675,14 @@ it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
       await guardManager.enable() // Ensure guard is enabled
       const userPromptHandler = new UserPromptHandler(guardManager)
       const mockValidator = vi.fn().mockResolvedValue(BLOCK_RESULT)
-      
+
       // Try to process an edit operation
       const editData = testData.editOperation()
-      
-      const result = await processHookData(JSON.stringify(editData), { 
+
+      const result = await processHookData(JSON.stringify(editData), {
         storage,
         userPromptHandler,
-        validator: mockValidator
+        validator: mockValidator,
       })
 
       expect(mockValidator).toHaveBeenCalled()
@@ -676,30 +695,30 @@ it('should subtract', () => { expect(subtract(3, 1)).toBe(2) })`,
 function createTestProcessor() {
   const storage = new MemoryStorage()
   const mockValidator = vi.fn().mockResolvedValue(BLOCK_RESULT)
-  
+
   // Create a GuardManager and UserPromptHandler that defaults to enabled for tests
   const guardManager = new GuardManager(storage)
   const userPromptHandler = new UserPromptHandler(guardManager)
-  
+
   // Helper to process hook data
   const process = async (hookData: unknown): Promise<ValidationResult> => {
     // Ensure TDD Guard is enabled for tests unless explicitly disabled
     await guardManager.enable()
-    
+
     return processHookData(JSON.stringify(hookData), {
-      storage, 
+      storage,
       validator: mockValidator,
-      userPromptHandler
+      userPromptHandler,
     })
   }
-  
+
   // Pre-populate storage helper
-  const populateStorage = async (data: { 
-    modifications?: string; 
-    test?: string; 
-    todo?: string;
-    lint?: string;
-    config?: string;
+  const populateStorage = async (data: {
+    modifications?: string
+    test?: string
+    todo?: string
+    lint?: string
+    config?: string
   }): Promise<void> => {
     if (data.modifications) await storage.saveModifications(data.modifications)
     if (data.test) await storage.saveTest(data.test)
@@ -707,7 +726,7 @@ function createTestProcessor() {
     if (data.lint) await storage.saveLint(data.lint)
     if (data.config) await storage.saveConfig(data.config)
   }
-  
+
   return {
     storage,
     process,
@@ -722,7 +741,8 @@ function createTestProcessor() {
 
     // Validator checks
     validatorHasBeenCalled: (): boolean => mockValidator.mock.calls.length > 0,
-    getValidatorCallArgs: (): Context | null => mockValidator.mock.calls[0]?.[0] ?? null,
+    getValidatorCallArgs: (): Context | null =>
+      mockValidator.mock.calls[0]?.[0] ?? null,
   }
 }
 
@@ -756,7 +776,10 @@ async function setupWrite(
     filePath,
     result,
     hasBeenValidated: (): boolean => sut.validatorHasBeenCalled(),
-    getParsedModifications: async (): Promise<Record<string, unknown> | null> => {
+    getParsedModifications: async (): Promise<Record<
+      string,
+      unknown
+    > | null> => {
       const saved = await sut.getModifications()
       return saved ? JSON.parse(saved) : null
     },
