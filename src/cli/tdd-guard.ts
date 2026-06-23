@@ -8,6 +8,7 @@ import { validator } from '../validation/validator'
 import { Config } from '../config/Config'
 import { ModelClientProvider } from '../providers/ModelClientProvider'
 import { ValidationResult } from '../contracts/types/ValidationResult'
+import { isAllow } from '../contracts/validationResults'
 
 export async function run(
   input: string,
@@ -38,11 +39,7 @@ if (require.main === module) {
   process.stdin.on('end', async () => {
     try {
       const result = await run(inputData)
-      if (
-        result.decision !== undefined ||
-        result.reason !== '' ||
-        result.continue === false
-      ) {
+      if (!isAllow(result)) {
         console.log(JSON.stringify(result))
       }
     } catch (error) {

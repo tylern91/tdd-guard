@@ -20,3 +20,11 @@ export function stopSession(message: string): ValidationResult {
     stopReason: message,
   }
 }
+
+export function isAllow(result: ValidationResult): boolean {
+  return (
+    result.decision === undefined &&
+    result.reason === '' &&
+    result.continue !== false
+  )
+}
