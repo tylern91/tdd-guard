@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach } from 'vitest'
 import { HookEvents } from './HookEvents'
 import { MemoryStorage } from '../storage/MemoryStorage'
+import { ToolOperation } from '../contracts/schemas/toolSchemas'
 import { testData } from '@testUtils'
 
 describe('HookEvents', () => {
@@ -81,7 +82,7 @@ describe('HookEvents', () => {
   async function setupHookEvents(): Promise<{
     readModifications: () => Promise<string>
     readTodos: () => Promise<string>
-    processEvent: (data: unknown) => Promise<void>
+    processEvent: (operation: ToolOperation) => Promise<void>
   }> {
     const storage = new MemoryStorage()
     const hookEvents = new HookEvents(storage)
@@ -101,7 +102,8 @@ describe('HookEvents', () => {
     return {
       readModifications,
       readTodos,
-      processEvent: (data: unknown): Promise<void> => hookEvents.processEvent(data),
+      processEvent: (operation: ToolOperation): Promise<void> =>
+        hookEvents.processEvent(operation),
     }
   }
 })
