@@ -1,7 +1,7 @@
 import { buildContext } from '../cli/buildContext'
-import { HookData, HookEvents } from './HookEvents'
+import { HookEvents } from './HookEvents'
 import { PostToolLintHandler } from './postToolLint'
-import { detectFileType, isTestFile, detectLanguage, type Language } from './fileTypeDetection'
+import { isTestFile, detectLanguage, type Language } from './fileTypeDetection'
 import { LinterProvider } from '../providers/LinterProvider'
 import { UserPromptHandler } from './userPromptHandler'
 import { SessionHandler } from './sessionHandler'
@@ -13,10 +13,10 @@ import { allow, block } from '../contracts/validationResults'
 import { Context } from '../contracts/types/Context'
 import { countTestDefinitions } from './testCounter'
 import {
-  HookDataSchema, isTodoWriteOperation, ToolOperationSchema,
+  HookDataSchema, ToolOperationSchema,
   WriteOperationSchema,
-  isEditOperation, isMultiEditOperation, isWriteOperation,
-  type ToolOperation
+  isEditOperation, isMultiEditOperation, isWriteOperation, isFileModification,
+  type ToolOperation, type FileModification
 } from '../contracts/schemas/toolSchemas'
 import { PytestResultSchema } from '../contracts/schemas/pytestSchemas'
 import { isTestPassing, TestResultSchema } from '../contracts/schemas/reporterSchemas'
@@ -124,13 +124,16 @@ export async function processHookData(
     return await lintHandler.handle(inputData)
   }
 
-  if (shouldSkipValidation(operation)) {
+  if (!operation || !isFileModification(operation)) {
     return allow
   }
 
   // For PreToolUse, check if we should notify about lint issues
   if (hookResult.data.hook_event_name === 'PreToolUse') {
-    const lintNotification = await checkLintNotification(storage, hookResult.data)
+    const lintNotification = await checkLintNotification(
+      storage,
+      operation.tool_input.file_path
+    )
     if (lintNotification.decision === 'block') {
       return lintNotification
     }
@@ -150,29 +153,14 @@ async function processHookEvent(parsedData: unknown, storage?: Storage): Promise
   }
 }
 
-function shouldSkipValidation(operation: ToolOperation | undefined): boolean {
-  return !operation || isTodoWriteOperation(operation)
-}
-
-function isAllowedTestAddition(operation: ToolOperation | undefined): boolean {
-  if (!operation) return false
-  if (isTodoWriteOperation(operation)) return false
-
-  const filePath = getFilePath(operation)
-  if (!filePath || !isTestFile(filePath)) return false
+function isAllowedTestAddition(operation: FileModification): boolean {
+  const filePath = operation.tool_input.file_path
+  if (!isTestFile(filePath)) return false
 
   const language = detectLanguage(filePath)
   if (!language) return false
 
-  const addedTestCount = countAddedTests(operation, language)
-  return addedTestCount === 1
-}
-
-function getFilePath(operation: ToolOperation): string | null {
-  if ('file_path' in operation.tool_input) {
-    return operation.tool_input.file_path
-  }
-  return null
+  return countAddedTests(operation, language) === 1
 }
 
 function diffTestCount(
@@ -219,14 +207,17 @@ async function performValidation(deps: ProcessHookDataDeps): Promise<ValidationR
   return allow
 }
 
-async function checkLintNotification(storage: Storage, hookData: HookData): Promise<ValidationResult> {
+async function checkLintNotification(
+  storage: Storage,
+  filePath: string
+): Promise<ValidationResult> {
   // Get test results to check if tests are passing
   let testsPassing = false
   try {
     const testStr = await storage.getTest()
     if (testStr) {
-      const fileType = detectFileType(hookData)
-      const testResult = fileType === 'python' 
+      const isPython = detectLanguage(filePath) === 'python'
+      const testResult = isPython
         ? PytestResultSchema.safeParse(JSON.parse(testStr))
         : TestResultSchema.safeParse(JSON.parse(testStr))
       if (testResult.success) {
