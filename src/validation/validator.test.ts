@@ -251,6 +251,7 @@ This violates TDD principles as explained in the numbered list above.
       const { result } = await runValidator('{"reason": "explanation only"}')
 
       expect(result.decision).toBe('block')
+      expect(result.reason).toContain('explanation only')
     })
   })
 
