@@ -115,6 +115,8 @@ export async function processHookData(
     return allow
   }
 
+  const operation = ToolOperationSchema.safeParse(hookResult.data).data
+
   await processHookEvent(parsedData, storage)
 
   // Check if this is a PostToolUse event
@@ -122,7 +124,7 @@ export async function processHookData(
     return await lintHandler.handle(inputData)
   }
 
-  if (shouldSkipValidation(hookResult.data)) {
+  if (shouldSkipValidation(operation)) {
     return allow
   }
 
@@ -134,7 +136,7 @@ export async function processHookData(
     }
   }
 
-  if (isAllowedTestAddition(hookResult.data)) {
+  if (isAllowedTestAddition(operation)) {
     return allow
   }
 
@@ -148,20 +150,12 @@ async function processHookEvent(parsedData: unknown, storage?: Storage): Promise
   }
 }
 
-function shouldSkipValidation(hookData: HookData): boolean {
-  const operationResult = ToolOperationSchema.safeParse({
-    ...hookData,
-    tool_input: hookData.tool_input,
-  })
-
-  return !operationResult.success || isTodoWriteOperation(operationResult.data)
+function shouldSkipValidation(operation: ToolOperation | undefined): boolean {
+  return !operation || isTodoWriteOperation(operation)
 }
 
-function isAllowedTestAddition(hookData: HookData): boolean {
-  const operationResult = ToolOperationSchema.safeParse(hookData)
-  if (!operationResult.success) return false
-
-  const operation = operationResult.data
+function isAllowedTestAddition(operation: ToolOperation | undefined): boolean {
+  if (!operation) return false
   if (isTodoWriteOperation(operation)) return false
 
   const filePath = getFilePath(operation)
