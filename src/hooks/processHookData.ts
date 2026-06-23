@@ -14,7 +14,6 @@ import { Context } from '../contracts/types/Context'
 import { countTestDefinitions } from './testCounter'
 import {
   HookDataSchema, ToolOperationSchema,
-  WriteOperationSchema,
   isEditOperation, isMultiEditOperation, isWriteOperation, isFileModification,
   type ToolOperation, type FileModification
 } from '../contracts/schemas/toolSchemas'
@@ -49,20 +48,22 @@ function extractFilePath(parsedData: unknown): string | null {
   return filePath
 }
 
-async function enrichWriteOperation(parsedData: unknown): Promise<void> {
-  const parsed = WriteOperationSchema.safeParse(parsedData)
-  if (!parsed.success) return
-  if (parsed.data.hook_event_name !== 'PreToolUse') return
+async function enrichWriteOperation(
+  operation: ToolOperation | undefined
+): Promise<ToolOperation | undefined> {
+  if (!operation || !isWriteOperation(operation)) return operation
+  if (operation.hook_event_name !== 'PreToolUse') return operation
 
-  const toolInput = (parsedData as { tool_input: Record<string, unknown> })
-    .tool_input
   try {
-    toolInput.old_content = await readOldFileContent(
-      parsed.data.tool_input.file_path
-    )
+    const oldContent = await readOldFileContent(operation.tool_input.file_path)
+    return {
+      ...operation,
+      tool_input: { ...operation.tool_input, old_content: oldContent },
+    }
   } catch {
     // Unreadable for reasons other than ENOENT (e.g., EISDIR, EACCES);
     // skip enrichment rather than failing the hook.
+    return operation
   }
 }
 
@@ -83,7 +84,6 @@ export async function processHookData(
     return allow
   }
 
-  await enrichWriteOperation(parsedData)
   const sessionHandler = new SessionHandler(storage)
   
   // Process SessionStart events
@@ -115,9 +115,11 @@ export async function processHookData(
     return allow
   }
 
-  const operation = ToolOperationSchema.safeParse(hookResult.data).data
+  const operation = await enrichWriteOperation(
+    ToolOperationSchema.safeParse(hookResult.data).data
+  )
 
-  await processHookEvent(parsedData, storage)
+  await processHookEvent(operation, storage)
 
   // Check if this is a PostToolUse event
   if (hookResult.data.hook_event_name === 'PostToolUse') {
@@ -146,10 +148,13 @@ export async function processHookData(
   return await performValidation(deps)
 }
 
-async function processHookEvent(parsedData: unknown, storage?: Storage): Promise<void> {
+async function processHookEvent(
+  operation: ToolOperation | undefined,
+  storage?: Storage
+): Promise<void> {
   if (storage) {
     const hookEvents = new HookEvents(storage)
-    await hookEvents.processEvent(parsedData)
+    await hookEvents.processEvent(operation)
   }
 }
 
