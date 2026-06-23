@@ -70,13 +70,6 @@ Contributions are welcome! See the [contributing guidelines](CONTRIBUTING.md) to
 - Storybook support: [@akornmeier](https://github.com/akornmeier)
 - Ruby/RSpec & Minitest support: [@Hiro-Chiba](https://github.com/Hiro-Chiba)
 
-### Roadmap
-
-- Expand language and test framework support
-- Validate file modifications made through MCPs and shell commands
-- Encourage meaningful refactoring opportunities when tests are green
-- Add support for multiple concurrent sessions per project
-
 ## Support
 
 - [Discussions](https://github.com/nizos/tdd-guard/discussions) - Ask questions and share ideas
