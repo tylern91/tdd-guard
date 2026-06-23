@@ -6,7 +6,7 @@ import { ClaudeCli } from './models/ClaudeCli'
 import { generateDynamicContext } from './context/context'
 
 interface ModelResponseJson {
-  decision: 'block' | 'approve' | null
+  decision: string | null
   reason?: string
 }
 
