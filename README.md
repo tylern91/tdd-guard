@@ -10,7 +10,7 @@
 > **TDD Guard grew into [Probity](https://github.com/nizos/probity)**: the same
 > TDD enforcement, now for Claude Code, Codex, and GitHub Copilot CLI, with
 > more reliable validation and no test reporters to set up. New projects should
-> start there. TDD Guard remains maintained for the many projects that rely on it.
+> start there. TDD Guard remains maintained for the projects that rely on it.
 
 Automated Test-Driven Development enforcement for Claude Code.
 
