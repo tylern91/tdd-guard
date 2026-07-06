@@ -6,6 +6,12 @@
 [![Security](https://github.com/nizos/tdd-guard/actions/workflows/security.yml/badge.svg)](https://github.com/nizos/tdd-guard/actions/workflows/security.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+> [!IMPORTANT]
+> **TDD Guard grew into [Probity](https://github.com/nizos/probity)**: the same
+> TDD enforcement, now for Claude Code, Codex, and GitHub Copilot CLI, with
+> more reliable validation and no test reporters to set up. New projects should
+> start there. TDD Guard remains maintained for the many projects that rely on it.
+
 Automated Test-Driven Development enforcement for Claude Code.
 
 <p align="center">
@@ -13,8 +19,6 @@ Automated Test-Driven Development enforcement for Claude Code.
 </p>
 
 TDD Guard ensures Claude Code follows Test-Driven Development principles. When your agent tries to skip tests or over-implement, TDD Guard blocks the action and explains what needs to happen instead.
-
-[Probity](https://github.com/nizos/probity) is where new development now happens. It validates using session activity for more reliable results, and works with more agents, languages, and test runners. TDD Guard remains maintained for projects that rely on it.
 
 ## Features
 
