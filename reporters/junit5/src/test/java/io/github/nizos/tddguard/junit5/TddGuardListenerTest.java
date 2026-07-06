@@ -12,8 +12,6 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
-import org.opentest4j.TestAbortedException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -181,28 +179,6 @@ class TddGuardListenerTest {
         String content = Files.readString(tmp.resolve(DATA_PATH));
         assertTrue(content.contains("\"reason\": \"interrupted\""),
                 "a truncated dynamic run should report interrupted, not passed");
-    }
-
-    @Test
-    void reportsPassedWhenAbortedContainerMakesCountUntrustworthy(@TempDir Path tmp) throws IOException {
-        TddGuardListener listener = createListener(tmp, name -> tmp.toString());
-
-        // A class with expectedCount=2 but its container finishes ABORTED
-        // (e.g. Assumptions.assumeTrue(false) in @BeforeAll).
-        listener.testPlanExecutionStarted(null);
-        // Simulate what testPlanExecutionStarted would set via a real plan
-        // by recording the count directly through the collector — here we
-        // drive the listener API instead: fire an ABORTED container event.
-        listener.executionFinished(
-                containerIdentifier("com.example.AbortedTest"),
-                TestExecutionResult.aborted(new TestAbortedException("assumed false")));
-        listener.testPlanExecutionFinished(null);
-
-        // The count became untrustworthy; even though recordedCount (0) < expectedCount (0)
-        // is not triggered here, the flag disables the comparison for the run.
-        String content = Files.readString(tmp.resolve(DATA_PATH));
-        assertTrue(content.contains("\"reason\": \"passed\""),
-                "an aborted container should not flip reason to interrupted");
     }
 
     private static TddGuardListener createListener(Path projectRoot,

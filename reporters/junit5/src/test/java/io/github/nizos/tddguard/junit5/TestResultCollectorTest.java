@@ -286,9 +286,9 @@ class TestResultCollectorTest {
     @Test
     void markCountUntrustworthyIsSticky() {
         // Once the flag is set, later increments from dynamic test registrations cannot
-        // re-enable the interrupted comparison.
+        // re-enable the interrupted comparison. With nothing recorded, a resettable
+        // count would compare 0 < 1 and report "interrupted" here.
         collector.setExpectedCount(2);
-        collector.recordPassed("com.example.MyTest", "a");
         collector.markCountUntrustworthy();
         collector.incrementExpectedCount(); // simulate a dynamic test registering afterwards
 

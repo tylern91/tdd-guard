@@ -52,6 +52,8 @@ class LauncherIntegrationTest {
         // descendant test as skipped so expectedCount and recordedCount stay balanced.
         assertTrue(content.contains("\"reason\": \"passed\""),
                 "a whole @Disabled class should report passed, not interrupted");
+        assertTrue(content.contains("\"state\": \"skipped\""),
+                "disabled tests should appear as skipped entries");
     }
 
     @Test
